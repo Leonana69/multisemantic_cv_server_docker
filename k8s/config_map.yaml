@@ -1,0 +1,7 @@
+apiVersion: v1
+metadata:
+  name: mscv-envs-config
+data:
+  TEST_HOST: mscv-http-test-svc
+  TEST_PORT: "50003"
+kind: ConfigMap
