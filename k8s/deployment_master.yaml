@@ -15,14 +15,14 @@ spec:
         app: mscv-master
     spec:
       containers:
-      - name: mscv-master-service
-        image: docker.io/library/mscv_master:20.04
+      - name: mscv-master-container
+        image: docker.io/library/mscv-master:0.1
         imagePullPolicy: Never
         envFrom:
           - configMapRef:
               name: mscv-envs-config
         ports:
-        - containerPort: 50002
+        - containerPort: 50001
 ---
 apiVersion: v1
 kind: Service
@@ -31,10 +31,12 @@ metadata:
 spec:
   selector:
     app: mscv-master
-  type: LoadBalancer
+  type: NodePort
   ports:
     - protocol: TCP
-      # internal master service port, should be 50001 in the end
-      port: 50002
-      # exposed public port
-      nodePort: 50000
+      # cluster access port
+      port: 50000
+      # container service port
+      targetPort: 50001
+      # external access port
+      nodePort: 50001

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mscv-example-stateful-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mscv-example-stateful-service
+  serviceName: "mscv-example-stateful-service-lb"
+  template:
+    metadata:
+      labels:
+        app: mscv-example-stateful-service
+    spec:
+      containers:
+      - name: mscv-example-stateful-service-container
+        image: docker.io/library/mscv-example-stateful-service:0.1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-example-stateful-service-lb
+spec:
+  type: LoadBalancer
+  sessionAffinity: ClientIP
+  selector:
+    app: mscv-example-stateful-service
+  ports:
+  - name: http
+    port: 49998
+    targetPort: 30000
+    nodePort: 49999

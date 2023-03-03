@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-example-service
+  labels:
+    app: mscv-example-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-example-service
+  template:
+    metadata:
+      labels:
+        app: mscv-example-service
+    spec:
+      containers:
+      - name: mscv-example-service-container
+        image: docker.io/library/mscv-example-service:0.1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-example-service-svc
+spec:
+  selector:
+    app: mscv-example-service
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      # cluster internal service port
+      port: 50003
+      # container service port
+      targetPort: 30000

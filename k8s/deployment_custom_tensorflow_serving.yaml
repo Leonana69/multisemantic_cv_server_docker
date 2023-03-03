@@ -1,0 +1,46 @@
+# using python to create a deployment like this
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-custom-tensorflow-serving
+  labels:
+    app: mscv-custom-tensorflow-serving
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-custom-tensorflow-serving
+  template:
+    metadata:
+      labels:
+        app: mscv-custom-tensorflow-serving
+    spec:
+      containers:
+      - name: mscv-custom-tensorflow-serving-container
+        image: docker.io/library/mscv-custom-tensorflow-serving:0.1
+        # here the human-pose and url should be provided
+        command: ["bash", "./download.sh", "human-pose", "https://tfhub.dev/google/movenet/singlepose/thunder/4?tf-hub-format=compressed"]
+        resources:
+          limits:
+             nvidia.com/gpu: 1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 50005
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-human-pose-svc
+spec:
+  selector:
+    app: mscv-custom-tensorflow-serving
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      # cluster internal service port
+      port: 50004
+      # container service port
+      targetPort: 50005
