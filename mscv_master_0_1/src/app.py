@@ -46,11 +46,11 @@ def upload():
     except RequestEntityTooLarge:
         return 'File exceeds the 16MB limit.'
 
-    # headers = {'Content-type' : 'application/json'}
-    # r = urllib.request.Request('http://{}:{}/'.format(os.getenv('TEST_HOST', '0.0.0.0'), os.getenv('TEST_PORT', 50003)), data=json.dumps({'1': 1}).encode('utf-8'), headers=headers)
-    # with urllib.request.urlopen(r) as f:
-    #     res = f.read()
-    # print(res.decode('utf-8'))
+    headers = {'Content-type' : 'application/json'}
+    r = urllib.request.Request('http://{}:{}/'.format(os.getenv('EXAMPLE_SERVICE_HOST', '0.0.0.0'), os.getenv('EXAMPLE_SERVICE_PORT', 50003)), data=json.dumps({'1': 1}).encode('utf-8'), headers=headers)
+    with urllib.request.urlopen(r) as f:
+        res = f.read()
+    print(res.decode('utf-8'))
 
     return render_template('index.html', keypoints=res.decode('utf-8'))
     # result_list = [secure_filename(file.filename)]

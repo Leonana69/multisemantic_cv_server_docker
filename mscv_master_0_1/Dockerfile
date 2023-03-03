@@ -12,8 +12,7 @@ RUN apt install -y sublime-text
 ### dev part ends ###
 
 WORKDIR /root
-
-COPY ./http_source ./http_source
-WORKDIR /root/http_source
+COPY ./src ./src
+WORKDIR /root/src
 EXPOSE 50002
 CMD ["python", "./app.py"]

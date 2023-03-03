@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mscv-service-name
+  name: mscv-example-service
   labels:
-    app: mscv-service-name
+    app: mscv-example-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mscv-service-name
+      app: mscv-example-service
   template:
     metadata:
       labels:
-        app: mscv-service-name
+        app: mscv-example-service
     spec:
       containers:
-      - name: mscv-service-name-service
-        image: docker.io/library/mscv_service_test:20.04
+      - name: mscv-example-service-container
+        image: docker.io/library/mscv-example-service:0.1
         imagePullPolicy: Never
         envFrom:
           - configMapRef:
@@ -27,10 +27,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mscv-service-name-svc
+  name: mscv-example-service-svc
 spec:
   selector:
-    app: mscv-service-name
+    app: mscv-example-service
   type: ClusterIP
   ports:
     - protocol: TCP

@@ -15,8 +15,8 @@ spec:
         app: mscv-master
     spec:
       containers:
-      - name: mscv-master-service
-        image: docker.io/library/mscv_master:20.04
+      - name: mscv-master-container
+        image: docker.io/library/mscv-master:0.1
         imagePullPolicy: Never
         envFrom:
           - configMapRef:

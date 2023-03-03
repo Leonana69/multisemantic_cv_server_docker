@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-from flask import Flask, render_template, request, send_from_directory
-import os, json
+from flask import Flask
+import json
 
 app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
     packet = {
-        'service_test': 517682,
+        'example_service': 'guojun.chen@yale.edu',
     }
     return json.dumps(packet)
 
