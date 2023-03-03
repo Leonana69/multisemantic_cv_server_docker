@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-human-pose
+  labels:
+    app: mscv-human-pose
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-human-pose
+  template:
+    metadata:
+      labels:
+        app: mscv-human-pose
+    spec:
+      containers:
+      - name: mscv-human-pose-container
+        image: docker.io/library/mscv-human-pose:0.1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 50004
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-human-pose-svc
+spec:
+  selector:
+    app: mscv-human-pose
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      # internal service port
+      port: 50004
+      # cluster redirect port
+      targetPort: 50004

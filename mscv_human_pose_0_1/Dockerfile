@@ -9,14 +9,10 @@ RUN pip install --no-cache-dir Flask==2.0.2
 # RUN echo "deb https://download.sublimetext.com/ apt/stable/" | tee /etc/apt/sources.list.d/sublime-text.list
 # RUN apt update
 # RUN apt install -y sublime-text
-
-ENV HUMAN_POSE_SERVICE_HOST=localhost
-ENV HUMAN_POSE_SERVICE_PORT=50004
-
 ### dev part ends ###
 
 WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
-EXPOSE 50002
-# CMD ["python", "./app.py"]
+EXPOSE 50004
+CMD ["python", "./app.py"]

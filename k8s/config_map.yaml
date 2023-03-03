@@ -4,4 +4,6 @@ metadata:
 data:
   EXAMPLE_SERVICE_HOST: mscv-example-service-svc
   EXAMPLE_SERVICE_PORT: "50003"
+  HUMAN_POSE_SERVICE_HOST: mscv-human-pose-svc
+  HUMAN_POSE_SERVICE_PORT: "50004"
 kind: ConfigMap

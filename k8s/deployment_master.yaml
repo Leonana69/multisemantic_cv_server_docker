@@ -37,4 +37,4 @@ spec:
       # internal master service port, should be 50001 in the end
       port: 50002
       # exposed public port
-      nodePort: 50000
+      nodePort: 50002
