@@ -3,8 +3,11 @@ from flask import Flask, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 import os, json, urllib
-import time, base64
+import time, io
+import numpy as np
+from PIL import Image
 from multisemantic_packet import MultisemanticPacket
+from utils import resize_with_pad, get_pad_offset
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -31,7 +34,6 @@ def upload():
                 return 'File is not an image.'
             
             img = file.read()
-            print(img)
 
             ## seek before save
             file_name = secure_filename(file.filename)
@@ -41,8 +43,8 @@ def upload():
             
             data = {
                 'image': {
-                    'format': 'b64_str',
-                    'content': base64.b64encode(img).decode('utf-8')
+                    'format': 'default',
+                    'content': img
                 },
             }
 
@@ -74,7 +76,7 @@ def upload():
     # except:
     #     print(f'urllib.request.urlopen [FAILED]')
 
-    return render_template('index.html', images=[file_name], keypoints=m_packet.msg)
+    return render_template('index.html', images=[file_name], keypoints=m_packet.get_server_packet())
     # result_list = [secure_filename(file.filename)]
     # return render_template('index.html', images=result_list, keypoints=json.dumps(m_packet.result))
 
@@ -92,42 +94,61 @@ def serve_image(filename):
 #     return m_packet.get_server_packet()
 
 def request_service(m_packet):
-    for f in m_packet.function:
-        result = {
-            'function': f,
-            'output': ''
-        }
 
-        print(type(m_packet.data['image']['content']))
-        print(m_packet.data['image']['content'])
+    has_img = False
+    if 'image' not in m_packet.data:
+        m_packet.msg.append('[ERROR] request without image')
+    elif 'format' not in m_packet.data['image'] or 'content' not in m_packet.data['image']:
+        m_packet.msg.append('[ERROR] image should has \'format\' and \'content\' fields')
+    else:
+        has_img = True
 
-        if f == 'pose':
-            HOST = os.getenv('HUMAN_POSE_SERVICE_HOST')
-            PORT = os.getenv('HUMAN_POSE_SERVICE_PORT')
-            DATA = json.dumps(m_packet.data).encode('utf-8')
-        elif f == 'slam':
-            pass
-        
-        print(json.dumps(m_packet.data))
-        print(type(DATA))
-        r = urllib.request.Request('http://{}:{}/'.format(HOST, PORT),
-                                       data=DATA,
-                                       headers={'Content-type' : 'application/json'})
-        try:
-            with urllib.request.urlopen(r) as f:
-                result['output'] = f.read().decode('utf-8')
-                m_packet.msg.append('[MSG] function <{}> request [SUCCESS]'.format(f))
-        except urllib.error.HTTPError as err:
-            m_packet.msg.append('[ERROR] function <{}> is not online'.format(f))
-            print(f'urllib.request.urlopen [FAILED] with HTTPError: {err}')
-        except urllib.error.URLError as err:
-            m_packet.msg.append('[ERROR] function <{}> is not online'.format(f))
-            print(f'urllib.request.urlopen [FAILED] with URLError: {err}')
-        except:
-            m_packet.msg.append('[ERROR] function <{}> is not online'.format(f))
-            print('urllib.request.urlopen [FAILED]')
+    if has_img:
+        img_data = m_packet.data['image']
+        format = img_data['format']
+        content = img_data['content']
 
-        m_packet.results.append(result)
+        if format == 'raw':
+            img = content
+        elif format == 'default':
+            img = Image.open(io.BytesIO(content)).convert('RGB')
+
+        for f in m_packet.function:
+            result = {
+                'function': f,
+                'output': ''
+            }
+
+            if f == 'pose':
+                HOST = os.getenv('HUMAN_POSE_SERVICE_HOST')
+                PORT = os.getenv('HUMAN_POSE_SERVICE_PORT')
+                ADDR = 'v1/models/human_pose:predict'
+
+                img_pose = resize_with_pad(img, [256, 256])
+                DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
+            elif f == 'slam':
+                pass
+
+            rq = urllib.request.Request('http://{}:{}/{}'.format(HOST, PORT, ADDR),
+                                        data=DATA,
+                                        headers={'Content-type' : 'application/json'})
+            try:
+                with urllib.request.urlopen(rq) as ret:
+                    if f == 'pose':
+                        key_points = json.loads(ret.read().decode('utf-8'))['predictions'][0][0]
+                        offset = get_pad_offset(img.size, [256, 256])
+                        for p in key_points:
+                            p[0] = (p[0] - offset[1]) / (1 - 2 * offset[1]) # y
+                            p[1] = (p[1] - offset[0]) / (1 - 2 * offset[0]) # x
+                        result['output'] = key_points
+                    else:
+                        pass
+                    msg = '[MSG] function <{}> request [SUCCESS]'.format(f)
+            except Exception  as err:
+                print(f'urllib.request.urlopen [FAILED] with HTTPError: {err}')
+                msg = '[ERROR] function <{}> is not online'.format(f)
+            m_packet.msg.append(msg)
+            m_packet.results.append(result)
     return m_packet.get_server_packet()
 
 if __name__ == "__main__":

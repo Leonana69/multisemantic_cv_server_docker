@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-from flask import Flask
-import json
+from flask import Flask, request
+import json, base64, io
+from PIL import Image
 
 app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
+    img_data = json.loads(request.data.decode('utf-8'))
+    img_bytes = base64.b64decode(img_data['content'])
+    img = Image.open(io.BytesIO(img_bytes))
+    print(img.size)
+
     packet = {
         'human_pose_service': 'guojun.chen@yale.edu',
     }

@@ -1,6 +1,7 @@
-FROM python:3.8-slim-bullseye
+FROM tensorflow/serving
 
-RUN pip install --no-cache-dir Flask==2.0.2
+# RUN pip install --no-cache-dir Flask==2.0.2
+# RUN pip install numpy Pillow tensorflow
 
 ### dev part begins ###
 ### install sublime-text ###
@@ -12,7 +13,7 @@ RUN pip install --no-cache-dir Flask==2.0.2
 ### dev part ends ###
 
 WORKDIR /root
-COPY ./src ./src
-WORKDIR /root/src
+COPY ./src/assets/models/human_pose /models/human_pose
+
 EXPOSE 50004
-CMD ["python", "./app.py"]
+# CMD ["python", "./app.py"]
