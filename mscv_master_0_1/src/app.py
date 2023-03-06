@@ -133,4 +133,4 @@ def request_service(m_packet):
     return m_packet.get_server_packet()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=50002)
+    app.run(host="0.0.0.0", port=30000)

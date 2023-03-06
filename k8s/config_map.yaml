@@ -6,4 +6,6 @@ data:
   EXAMPLE_SERVICE_PORT: "50003"
   HUMAN_POSE_SERVICE_HOST: mscv-human-pose-svc
   HUMAN_POSE_SERVICE_PORT: "50004"
+  SLAM_SERVICE_HOST: mscv-slam-svc
+  SLAM_SERVICE_PORT: "50005"
 kind: ConfigMap

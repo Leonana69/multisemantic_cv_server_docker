@@ -14,5 +14,5 @@ RUN pip install --no-cache-dir Flask==2.0.2
 WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
-EXPOSE 50003
+EXPOSE 30000
 CMD ["python", "./app.py"]

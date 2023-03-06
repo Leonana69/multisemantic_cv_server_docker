@@ -18,5 +18,5 @@ RUN pip install --no-cache-dir Flask==2.0.2 Pillow numpy
 WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
-EXPOSE 50002
+EXPOSE 30000
 CMD ["python", "./app.py"]

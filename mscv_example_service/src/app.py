@@ -12,4 +12,4 @@ def index():
     return json.dumps(packet)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=50003)
+    app.run(host="0.0.0.0", port=30000)

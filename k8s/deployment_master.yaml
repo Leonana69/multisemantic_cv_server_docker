@@ -22,7 +22,7 @@ spec:
           - configMapRef:
               name: mscv-envs-config
         ports:
-        - containerPort: 50002
+        - containerPort: 30000
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +34,8 @@ spec:
   type: LoadBalancer
   ports:
     - protocol: TCP
-      # internal master service port, should be 50001 in the end
+      # 
       port: 50002
+      targetPort: 30000
       # exposed public port
       nodePort: 50002

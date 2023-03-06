@@ -22,7 +22,7 @@ spec:
           - configMapRef:
               name: mscv-envs-config
         ports:
-        - containerPort: 50003
+        - containerPort: 30000
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +34,7 @@ spec:
   type: ClusterIP
   ports:
     - protocol: TCP
-      # internal service port
+      # cluster internal service port
       port: 50003
-      # cluster redirect port
-      targetPort: 50003
+      # container port
+      targetPort: 30000
