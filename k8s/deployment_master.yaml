@@ -5,7 +5,7 @@ metadata:
   labels:
     app: mscv-master
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: mscv-master
@@ -31,11 +31,12 @@ metadata:
 spec:
   selector:
     app: mscv-master
-  type: LoadBalancer
+  type: NodePort
   ports:
     - protocol: TCP
-      # 
-      port: 50002
+      # cluster access port
+      port: 50000
+      # container service port
       targetPort: 30000
-      # exposed public port
+      # external access port
       nodePort: 50002

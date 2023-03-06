@@ -26,10 +26,9 @@ def upload():
     try:
         file = request.files['filename']
         function = request.form['function']
-        extension = os.path.splitext(file.filename)[1].lower()
-        output = {}
 
         if file:
+            extension = os.path.splitext(file.filename)[1].lower()
             if extension not in app.config['ALLOWED_EXTENSIONS']:
                 return 'File is not an image.'
             
@@ -52,9 +51,6 @@ def upload():
             if m_packet.is_valid():
                 request_service(m_packet)
 
-            # marked_image = draw_pose_keypoints(image['data'], np.array(m_packet.result[0]['output']))
-            # cv2.imwrite(os.path.join(app.config['OUTPUT_IMAGE_PATH'], secure_filename(file.filename)), marked_image)
-            # cv2.imwrite(os.path.join(app.config['UPLOAD_IMAGE_PATH'], secure_filename(file.filename)), image['data'])
         else:
             m_packet = MultisemanticPacket()
     except RequestEntityTooLarge:
@@ -75,7 +71,6 @@ def json_api():
     return m_packet.get_server_packet()
 
 def request_service(m_packet):
-
     has_img = False
     if 'image' not in m_packet.data:
         m_packet.msg.append('[ERROR] request without image')
@@ -124,7 +119,7 @@ def request_service(m_packet):
                         result['output'] = key_points
                     else:
                         pass
-                    msg = '[MSG] function <{}> request [SUCCESS]'.format(f)
+                    msg = '[SUCCESS] request function <{}>'.format(f)
             except Exception  as err:
                 print(f'urllib.request.urlopen [FAILED] with HTTPError: {err}')
                 msg = '[ERROR] function <{}> is not online'.format(f)

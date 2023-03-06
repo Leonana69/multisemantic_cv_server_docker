@@ -28,6 +28,10 @@ import-human-pose:
 	docker save mscv-human-pose > mscv-human-pose.tar
 	microk8s ctr image import mscv-human-pose.tar
 
+clean-master:
+	@-$(MK) delete deploy mscv-master
+	@-$(MK) delete svc mscv-master-svc
+
 clean:
 	@-$(MK) delete deploy mscv-master
 	@-$(MK) delete svc mscv-master-svc

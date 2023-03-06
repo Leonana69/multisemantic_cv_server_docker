@@ -36,5 +36,5 @@ spec:
     - protocol: TCP
       # cluster internal service port
       port: 50004
-      # container port
+      # container service port
       targetPort: 30000
