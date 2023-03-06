@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 import os, json, urllib
-import time, io
+import time, io, base64
 import numpy as np
 from PIL import Image
 from multisemantic_packet import MultisemanticPacket
@@ -44,7 +44,7 @@ def upload():
             data = {
                 'image': {
                     'format': 'default',
-                    'content': img
+                    'content': base64.encodebytes(img).decode()
                 },
             }
 
@@ -60,38 +60,19 @@ def upload():
     except RequestEntityTooLarge:
         return 'File exceeds the 16MB limit.'
 
-    
-
-    # headers = {'Content-type' : 'application/json'}
-    # r = urllib.request.Request('http://{}:{}/'.format(os.getenv('EXAMPLE_SERVICE_HOST', '0.0.0.0'), os.getenv('EXAMPLE_SERVICE_PORT', 50003)), data=json.dumps({'1': 1}).encode('utf-8'), headers=headers)
-    
-    # try:
-    #     with urllib.request.urlopen(r) as f:
-    #         output = f.read().decode('utf-8')
-    #     print(output)
-    # except urllib.error.HTTPError as err:
-    #     print(f'urllib.request.urlopen [FAILED] with HTTPError: {err}')
-    # except urllib.error.URLError as err:
-    #     print(f'urllib.request.urlopen [FAILED] with URLError: {err}')
-    # except:
-    #     print(f'urllib.request.urlopen [FAILED]')
-
     return render_template('index.html', images=[file_name], keypoints=m_packet.get_server_packet())
-    # result_list = [secure_filename(file.filename)]
-    # return render_template('index.html', images=result_list, keypoints=json.dumps(m_packet.result))
 
 @app.route('/serve-image/<filename>', methods=['GET'])
 def serve_image(filename):
     # TODO: change it to OUTPUT_IMAGE_PATH
     return send_from_directory(app.config['UPLOAD_IMAGE_PATH'], filename)
 
-# @app.route('/api', methods=['POST'])
-# def json_api():
-#     m_packet = MultisemanticPacket.from_json_str(request.data)
-#     if m_packet.is_valid():
-#         multisemantic_handle.run(m_packet)
-
-#     return m_packet.get_server_packet()
+@app.route('/api', methods=['POST'])
+def json_api():
+    m_packet = MultisemanticPacket.from_json_str(request.data)
+    if m_packet.is_valid():
+        request_service(m_packet)
+    return m_packet.get_server_packet()
 
 def request_service(m_packet):
 
@@ -106,7 +87,7 @@ def request_service(m_packet):
     if has_img:
         img_data = m_packet.data['image']
         format = img_data['format']
-        content = img_data['content']
+        content = base64.decodebytes(img_data['content'].encode())
 
         if format == 'raw':
             img = content

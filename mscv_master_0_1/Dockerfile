@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir Flask==2.0.2 Pillow numpy
 # RUN apt update
 # RUN apt install -y sublime-text
 
-ENV HUMAN_POSE_SERVICE_HOST=localhost
-ENV HUMAN_POSE_SERVICE_PORT=50004
+# ENV HUMAN_POSE_SERVICE_HOST=localhost
+# ENV HUMAN_POSE_SERVICE_PORT=50004
 
 ### dev part ends ###
 
@@ -19,4 +19,4 @@ WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
 EXPOSE 50002
-# CMD ["python", "./app.py"]
+CMD ["python", "./app.py"]
