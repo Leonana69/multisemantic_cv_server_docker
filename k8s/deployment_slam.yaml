@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-slam
+  labels:
+    app: mscv-slam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-slam
+  template:
+    metadata:
+      labels:
+        app: mscv-slam
+    spec:
+      containers:
+      - name: mscv-slam-container
+        image: docker.io/library/mscv-slam:0.1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-slam-svc
+spec:
+  selector:
+    app: mscv-slam
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      # cluster internal service port
+      port: 50005
+      # container port
+      targetPort: 30000
