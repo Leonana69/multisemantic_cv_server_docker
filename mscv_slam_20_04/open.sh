@@ -1,1 +1,1 @@
-docker exec -it mscv_slam_dd1 bash
+docker exec -it mscv_slam bash
