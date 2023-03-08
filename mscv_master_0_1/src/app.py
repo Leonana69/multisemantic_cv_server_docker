@@ -103,6 +103,14 @@ def request_service(m_packet):
                 img_pose = resize_with_pad(img, [256, 256])
                 DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
             elif f == 'slam':
+                # HOST = os.getenv('SLAM_SERVICE_HOST')
+                # PORT = os.getenv('SLAM_SERVICE_PORT')
+                HOST = 'localhost'
+                PORT = '50005'
+                ADDR = 'slam_1'
+
+                DATA = json.dumps({ 'width': img.size[0], 'height': img.size[1], 'img': np.array(img).reshape(1, -1).tolist()}).encode('utf-8')
+            else:
                 pass
 
             rq = urllib.request.Request('http://{}:{}/{}'.format(HOST, PORT, ADDR),
@@ -117,6 +125,8 @@ def request_service(m_packet):
                             p[0] = (p[0] - offset[1]) / (1 - 2 * offset[1]) # y
                             p[1] = (p[1] - offset[0]) / (1 - 2 * offset[0]) # x
                         result['output'] = key_points
+                    elif f == 'slam':
+                        print(ret.read().decode('utf-8'))
                     else:
                         pass
                     msg = '[SUCCESS] request function <{}>'.format(f)
