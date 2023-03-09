@@ -108,8 +108,7 @@ def request_service(m_packet):
                 HOST = 'localhost'
                 PORT = '50005'
                 ADDR = 'slam_1'
-
-                DATA = json.dumps({ 'width': img.size[0], 'height': img.size[1], 'img': np.array(img).reshape(1, -1).tolist()}).encode('utf-8')
+                DATA = json.dumps({ 'width': img.size[0], 'height': img.size[1], 'img': np.array(img).reshape(1, -1).tolist(), 'timestamp': m_packet.timestamp }).encode('utf-8')
             else:
                 pass
 

@@ -3,43 +3,43 @@
 #include <fstream>
 #include <chrono>
 #include <vector>
+#include <stdio.h>
 
 #include "crow.h"
 
 #include <opencv2/core/core.hpp>
 
 #include "System.h"
-// #include "Converter.h"
 
 using namespace std;
 using namespace cv;
 
-class ImageGrabber {
-public:
-    ImageGrabber(ORB_SLAM3::System* pSLAM): mpSLAM(pSLAM) {}
-    void GrabImage();
-    ORB_SLAM3::System* mpSLAM;
-};
+ORB_SLAM3::System* ptr_slam;
 
 int main(int argc, char **argv) {
-    // if (argc != 4) {
-    //     cerr << endl << "Usage: ./mscv_slam_dev_service path_to_vocabulary path_to_settings username" << endl;        
-    //     return 1;
-    // }
+    if (argc != 4) {
+        cerr << endl << "Usage: ./mscv_slam_dev_service path_to_vocabulary path_to_settings username" << endl;        
+        return 1;
+    }
 
-    // // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    // ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::MONOCULAR, true);
+    // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::MONOCULAR, false);
+    ptr_slam = &SLAM;
 
     crow::SimpleApp app;
     CROW_ROUTE(app, "/slam_1").methods("POST"_method)
     ([](const crow::request& req){
+        char buffer[100];
         auto data = crow::json::load(req.body);
+        crow::json::wvalue x({{}});
         if (!data)
             return crow::response(crow::status::BAD_REQUEST); // same as crow::response(400)
         else {
             auto w = data["width"].i();
             auto h = data["height"].i();
-            cout << "Width: " << w << ", height: " << h << endl;
+            auto t = data["timestamp"].d();
+            cout << "Width: " << w << ", height: " << h << ", t: ";
+            cout << std::setprecision(20) << (double)t << endl;
 
             Mat mat_img(h, w, CV_8UC3);
             crow::json::rvalue* rv_img = data["img"].begin();
@@ -48,39 +48,22 @@ int main(int argc, char **argv) {
                 *ptr = (unsigned char)x.i();
                 ++ptr;
             }
-        }
 
-        crow::json::wvalue x({{}});
-        x["output"] = "slam results";
+            float* s = ptr_slam->TrackMonocular(mat_img, t).data();
+            for (int i = 0; i < 4; i++) {
+                cout << s[i] << ", ";
+            }
+            cout << endl;
+            
+            sprintf(buffer, "{ \'x\': %f, \'y\': %f, \'z\': %f, \'w\': %f }", s[0], s[1], s[2], s[3]);
+            x["output"] = buffer;
+        }
+        
         return crow::response(x);
     });
     app.port(50005).run();
 
     // Stop all threads
-    // SLAM.Shutdown();
+    ptr_slam->Shutdown();
     return 0;
-}
-
-void ImageGrabber::GrabImage() {
-    // Copy the ros image message to cv::Mat.
-    // cv_bridge::CvImageConstPtr cv_ptr;
-    // try {
-    //     cv_ptr = cv_bridge::toCvShare(msg);
-    // } catch (cv_bridge::Exception& e) {
-    //     ROS_ERROR("cv_bridge exception: %s", e.what());
-    //     return;
-    // }
-
-    // float* s = mpSLAM->TrackMonocular(cv_ptr->image, cv_ptr->header.stamp.toSec()).data();
-    // for (int i = 0; i < 4; i++) {
-    //     cout << s[i] << ", ";
-    // }
-    // cout << endl;
-
-    // geometry_msgs::Quaternion q_msg;
-    // q_msg.x = s[0];
-    // q_msg.y = s[1];
-    // q_msg.z = s[2];
-    // q_msg.w = s[3];
-    // orb_pub->publish(q_msg);
 }
