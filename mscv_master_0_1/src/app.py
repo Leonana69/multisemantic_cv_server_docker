@@ -126,7 +126,7 @@ def request_service(m_packet):
                             p[1] = (p[1] - offset[0]) / (1 - 2 * offset[0]) # x
                         result['output'] = key_points
                     elif f == 'slam':
-                        print(ret.read().decode('utf-8'))
+                        result['output'] = json.loads(ret.read().decode('utf-8'))['output']
                     else:
                         pass
                     msg = '[SUCCESS] request function <{}>'.format(f)

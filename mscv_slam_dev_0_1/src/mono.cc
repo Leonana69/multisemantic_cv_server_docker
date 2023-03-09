@@ -37,26 +37,21 @@ int main(int argc, char **argv) {
         if (!data)
             return crow::response(crow::status::BAD_REQUEST); // same as crow::response(400)
         else {
-            cout << data << endl;
             auto w = data["width"].i();
             auto h = data["height"].i();
-            cout << w << ", " << h << endl;
+            cout << "Width: " << w << ", height: " << h << endl;
 
+            Mat mat_img(h, w, CV_8UC3);
             crow::json::rvalue* rv_img = data["img"].begin();
-            vector<unsigned char> vec_img;
-            vec_img.reserve(w * h * 3);
+            unsigned char *ptr = mat_img.data;
             for (auto& x : *rv_img) {
-                vec_img.push_back((unsigned char)x.i());
+                *ptr = (unsigned char)x.i();
+                ++ptr;
             }
-
-            Mat mat_img(w, h, CV_8UC3, vec_img.data);
-            imshow("test", mat_img);
-            waitKey(0);
-            cout << endl;
         }
 
-        crow::json::wvalue x({{"message", "Hello, World!"}});
-        x["message2"] = "Hello, World.. Again!";
+        crow::json::wvalue x({{}});
+        x["output"] = "slam results";
         return crow::response(x);
     });
     app.port(50005).run();
