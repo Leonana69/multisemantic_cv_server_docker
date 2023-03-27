@@ -1,6 +1,5 @@
-FROM python:3.8-slim-bullseye
-
-RUN pip install --no-cache-dir Flask==2.0.2 Pillow numpy
+FROM python:3.11-slim-bullseye
+RUN pip install Flask Pillow numpy
 
 ### dev part begins ###
 ### install sublime-text ###
