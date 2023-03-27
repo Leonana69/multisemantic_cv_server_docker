@@ -7,7 +7,7 @@ app = Flask(__name__)
 @app.route('/', methods=['POST', 'GET'])
 def index():
     packet = {
-        'example_service': 'guojun.chen@yale.edu',
+        'example_service': "guojun.chen@yale.edu",
     }
     return json.dumps(packet)
 

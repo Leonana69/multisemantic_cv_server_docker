@@ -8,7 +8,6 @@
 #include "crow.h"
 
 #include <opencv2/core/core.hpp>
-
 #include "System.h"
 
 using namespace std;
@@ -61,6 +60,9 @@ int main(int argc, char **argv) {
         
         return crow::response(x);
     });
+
+    
+
     app.port(50005).run();
 
     // Stop all threads
