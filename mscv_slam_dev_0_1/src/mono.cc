@@ -17,17 +17,18 @@ ORB_SLAM3::System* ptr_slam;
 
 int main(int argc, char **argv) {
     if (argc != 4) {
-        cerr << endl << "Usage: ./mscv_slam_dev_service path_to_vocabulary path_to_settings username" << endl;        
+        cerr << endl << "Usage: ./mscv_slam_dev_service path_to_vocabulary path_to_settings PORT" << endl;        
         return 1;
     }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::MONOCULAR, false);
+    ORB_SLAM3::System SLAM(argv[1], argv[2], ORB_SLAM3::System::MONOCULAR, true);
     ptr_slam = &SLAM;
 
     crow::SimpleApp app;
-    CROW_ROUTE(app, "/slam_1").methods("POST"_method)
-    ([](const crow::request& req){
+
+    CROW_ROUTE(app, "/slam").methods("POST"_method)
+    ([](const crow::request& req) {
         char buffer[100];
         auto data = crow::json::load(req.body);
         crow::json::wvalue x({{}});
@@ -61,10 +62,9 @@ int main(int argc, char **argv) {
         return crow::response(x);
     });
 
+    int PORT = atoi(argv[3]);
+    app.port(PORT).run();
     
-
-    app.port(50005).run();
-
     // Stop all threads
     ptr_slam->Shutdown();
     return 0;

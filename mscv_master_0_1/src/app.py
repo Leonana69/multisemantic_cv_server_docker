@@ -105,9 +105,18 @@ def request_service(m_packet):
             elif f == 'slam':
                 # HOST = os.getenv('SLAM_SERVICE_HOST')
                 # PORT = os.getenv('SLAM_SERVICE_PORT')
-                HOST = 'localhost'
-                PORT = '50005'
-                ADDR = 'slam_1'
+                if m_packet.user == 'duke_drone_1':
+                    HOST = '172.29.249.77'
+                    PORT = '50005'
+                    ADDR = 'slam'
+                elif m_packet.user == 'duke_drone_2':
+                    HOST = '172.29.249.77'
+                    PORT = '50006'
+                    ADDR = 'slam'
+                else:
+                    m_packet.msg.append('[ERROR] unknown user')
+                    continue
+
                 DATA = json.dumps({ 'width': img.size[0], 'height': img.size[1], 'img': np.array(img).reshape(1, -1).tolist(), 'timestamp': m_packet.timestamp }).encode('utf-8')
             else:
                 pass
