@@ -117,7 +117,13 @@ def request_service(m_packet):
                     m_packet.msg.append('[ERROR] unknown user')
                     continue
 
-                DATA = json.dumps({ 'width': img.size[0], 'height': img.size[1], 'img': np.array(img).reshape(1, -1).tolist(), 'timestamp': m_packet.timestamp }).encode('utf-8')
+                DATA = json.dumps({
+                    'width': img.size[0],
+                    'height': img.size[1],
+                    'img': np.array(img).reshape(1, -1).tolist(),
+                    'timestamp': m_packet.timestamp,
+                    'reset': 1 if m_packet.mode == 'stop' else 0
+                }).encode('utf-8')
             else:
                 pass
 

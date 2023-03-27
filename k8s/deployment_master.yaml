@@ -39,4 +39,4 @@ spec:
       # container service port
       targetPort: 30000
       # external access port
-      nodePort: 50002
+      nodePort: 50001
