@@ -1,6 +1,5 @@
-FROM python:3.8-slim-bullseye
-
-RUN pip install --no-cache-dir Flask==2.0.2
+FROM python:3.11-slim-bullseye
+RUN pip install Flask
 
 ### dev part begins ###
 ### install sublime-text ###

@@ -18,4 +18,4 @@ WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
 EXPOSE 30000
-# CMD ["python", "./app.py"]
+CMD ["python", "./app.py"]
