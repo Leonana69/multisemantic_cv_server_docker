@@ -13,11 +13,6 @@
 using namespace std;
 using namespace cv;
 
-enum {
-    RESET = 0,
-    REQUEST,
-}
-
 ORB_SLAM3::System* ptr_slam;
 
 int main(int argc, char **argv) {
@@ -39,7 +34,7 @@ int main(int argc, char **argv) {
         crow::json::wvalue x({{}});
         if (!data) {
             return crow::response(crow::status::BAD_REQUEST); // same as crow::response(400)
-        } else if data["reset"].i() == 1 {
+        } else if (data["reset"].i() == 1) {
             ptr_slam->Reset();
             x["output"] = "reset";
         } else {
