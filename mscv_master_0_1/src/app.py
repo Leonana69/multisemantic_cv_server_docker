@@ -17,21 +17,9 @@ app.config['OUTPUT_IMAGE_PATH'] = os.path.join(basedir, 'assets/outputs/')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['ALLOWED_EXTENSIONS'] = ['.jpg', '.jpeg', '.png']
 
-# from kubernetes import client, config
-# Load the kubeconfig file
-# config.load_incluster_config()
-# # Create a Kubernetes API client object using the service account credentials
-# api = client.AppsV1Api()
-# # Get the Kubernetes configuration object
-# kube_config = client.Configuration()
-# # Specify the SSL/TLS certificates
-# kube_config.host = 'https://localhost:16443'
-# kube_config.ssl_ca_cert = '/var/snap/microk8s/current/certs/ca.crt'
-# kube_config.cert_file = '/var/snap/microk8s/current/certs/client.crt'
-# kube_config.key_file = '/var/snap/microk8s/current/certs/client.key'
-# # Create a new Kubernetes API client object with the SSL/TLS certificates loaded from the configuration file
-# # Set the Kubernetes configuration object
-# client.Configuration.set_default(kube_config)
+from kubernetes import client, config
+config.load_incluster_config() # Load the kubeconfig file
+api = client.AppsV1Api() # Create a Kubernetes API client object using the service account credentials
 
 @app.route('/')
 def index():
@@ -170,38 +158,37 @@ def request_service(m_packet):
             m_packet.results.append(result)
     return m_packet.get_server_packet()
 
+def custom_tensorflow_serving_deployment(username, model_name, url):
+    deployment_name = username + '-' + model_name + '-deployment'
+    deployment = client.V1Deployment(
+        metadata = client.V1ObjectMeta(name = deployment_name),
+        spec = client.V1DeploymentSpec(
+            replicas = int(1),
+            selector = client.V1LabelSelector(
+                match_labels = {'app': deployment_name}
+            ),
+            template = client.V1PodTemplateSpec(
+                metadata = client.V1ObjectMeta(
+                    labels = {'app': deployment_name}
+                ),
+                spec = client.V1PodSpec(
+                    containers = [
+                        client.V1Container(
+                            name = deployment_name,
+                            image = "docker.io/library/mscv-custom-tensorflow-serving:0.1",
+                            command = ["bash", "./download.sh", name, url],
+                        )
+                    ]
+                )
+            )
+        )
+    )
 
-def custom_tensorflow_serving_deployment(name, url):
-    deployment_name = name + '-deployment'
-    # deployment = client.V1Deployment(
-    #     metadata = client.V1ObjectMeta(name = deployment_name),
-    #     spec = client.V1DeploymentSpec(
-    #         replicas = int(1),
-    #         selector = client.V1LabelSelector(
-    #             match_labels = {'app': deployment_name}
-    #         ),
-    #         template = client.V1PodTemplateSpec(
-    #             metadata = client.V1ObjectMeta(
-    #                 labels = {'app': deployment_name}
-    #             ),
-    #             spec = client.V1PodSpec(
-    #                 containers = [
-    #                     client.V1Container(
-    #                         name = deployment_name,
-    #                         image = "docker.io/library/mscv-custom-tensorflow-serving:0.1",
-    #                         command = ["bash", "./download.sh", name, url],
-    #                     )
-    #                 ]
-    #             )
-    #         )
-    #     )
-    # )
-
-    # # Create the deployment in the Kubernetes cluster
-    # api.create_namespaced_deployment(
-    #     namespace = 'default',
-    #     body = deployment
-    # )
+    # Create the deployment in the Kubernetes cluster
+    api.create_namespaced_deployment(
+        namespace = 'default',
+        body = deployment
+    )
 
 if __name__ == "__main__":    
     app.run(host="0.0.0.0", port=50001)
