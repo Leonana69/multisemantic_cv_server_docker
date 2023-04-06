@@ -2,7 +2,7 @@ MK = microk8s kubectl
 
 apply-config:
 	@-$(MK) delete configmap mscv-envs-config
-	@$(MK) apply -f config_map.yaml
+	@$(MK) apply -f config-map.yaml
 
 deploy-master:
 	@$(MK) create -f deployment_master.yaml

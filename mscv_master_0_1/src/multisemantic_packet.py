@@ -2,7 +2,7 @@ import json
 
 class MultisemanticPacket():
     mode = ['single_image', 'stream', 'stop']
-    function = ['pose', 'slam']
+    function = ['pose', 'slam', 'deploy']
     users_list = ['duke_drone_1', 'duke_drone_2', 'web_interface', 'guojun']
 
     image_format = ['bytes', 'ros_msg']

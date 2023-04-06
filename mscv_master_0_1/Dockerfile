@@ -1,5 +1,5 @@
 FROM python:3.11-slim-bullseye
-RUN pip install Flask Pillow numpy
+RUN pip install Flask Pillow numpy kubernetes
 
 ### dev part begins ###
 ### install sublime-text ###
@@ -13,9 +13,9 @@ RUN pip install Flask Pillow numpy
 
 WORKDIR /root
 COPY ./src ./src
-WORKDIR /root/src
 EXPOSE 50001
 
 # ENV HUMAN_POSE_SERVICE_HOST=localhost
 # ENV HUMAN_POSE_SERVICE_PORT=50004
-CMD ["python", "./app.py"]
+
+CMD ["python", "./src/app.py"]
