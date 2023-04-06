@@ -22,7 +22,7 @@ spec:
           - configMapRef:
               name: mscv-envs-config
         ports:
-        - containerPort: 30000
+        - containerPort: 50001
 ---
 apiVersion: v1
 kind: Service
@@ -37,6 +37,6 @@ spec:
       # cluster access port
       port: 50000
       # container service port
-      targetPort: 30000
+      targetPort: 50001
       # external access port
       nodePort: 50001

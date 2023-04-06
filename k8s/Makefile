@@ -16,6 +16,9 @@ deploy-example-stateful-service:
 deploy-human-pose:
 	@$(MK) create -f deployment_human_pose.yaml
 
+deploy-custom-tensorflow-serving:
+	@$(MK) create -f deployment_custom_tensorflow_serving.yaml
+
 import-master:
 	@-microk8s ctr image delete docker.io/library/mscv-master:0.1
 	docker save mscv-master > mscv-master.tar
@@ -36,6 +39,11 @@ import-human-pose:
 	docker save mscv-human-pose > mscv-human-pose.tar
 	microk8s ctr image import mscv-human-pose.tar
 
+import-custom-tensorflow-serving:
+	@-microk8s ctr image delete docker.io/library/mscv-custom-tensorflow-serving:0.1
+	docker save mscv-custom-tensorflow-serving > mscv-custom-tensorflow-serving.tar
+	microk8s ctr image import mscv-custom-tensorflow-serving.tar
+
 clean-master:
 	@-$(MK) delete deploy mscv-master
 	@-$(MK) delete svc mscv-master-svc
@@ -51,3 +59,7 @@ clean:
 clean-stateful:
 	@-$(MK) delete sts mscv-example-stateful-service
 	@-$(MK) delete svc mscv-example-stateful-service-lb
+
+clean-custom-tensorflow-serving:
+	@-$(MK) delete deploy mscv-custom-tensorflow-serving
+	@-$(MK) delete svc mscv-human-pose-svc

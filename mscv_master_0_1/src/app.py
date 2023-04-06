@@ -98,7 +98,7 @@ def request_service(m_packet):
             if f == 'pose':
                 HOST = os.getenv('HUMAN_POSE_SERVICE_HOST')
                 PORT = os.getenv('HUMAN_POSE_SERVICE_PORT')
-                ADDR = 'v1/models/human_pose:predict'
+                ADDR = 'v1/models/human-pose:predict'
 
                 img_pose = resize_with_pad(img, [256, 256])
                 DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
@@ -152,4 +152,4 @@ def request_service(m_packet):
     return m_packet.get_server_packet()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=30000)
+    app.run(host="0.0.0.0", port=50001)
