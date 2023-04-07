@@ -1,11 +1,9 @@
 import json
 
 class MultisemanticPacket():
-    mode = ['single_image', 'stream', 'stop']
-    function = ['pose', 'slam', 'deploy']
-    users_list = ['duke_drone_1', 'duke_drone_2', 'web_interface', 'guojun']
-
-    image_format = ['bytes', 'ros_msg']
+    mode = ['image', 'image_imu', 'deploy', 'stop']
+    function = ['pose', 'slam']
+    users_list = ['duke-drone-1', 'duke-drone-2', 'web-interface', 'guojun']
 
     def __init__(self, user='none', mode='none', timestamp=0.0, function=[], data={}):
         self.user = user
@@ -68,7 +66,7 @@ class MultisemanticPacket():
             else:
                 valid_function.append(f)
         self.function = valid_function
-        if len(self.function) == 0:
+        if len(self.function) == 0 and (self.mode == 'image' or self.mode == 'image_imu'):
             self.msg.append('[ERROR] no valid function')
             is_valid = False
 
@@ -87,3 +85,16 @@ class MultisemanticPacket():
             'results': self.results,
         }
         return json.dumps(r_packet)
+
+def parse_model_info(m_packet):
+    if 'model_info' not in m_packet.data:
+        m_packet.msg.append('[ERROR] model_info field is missing')
+        return False
+    model_info = m_packet.data['model_info']
+    if 'name' not in model_info:
+        m_packet.msg.append('[ERROR] model_info->name field is missing')
+        return False
+    if 'url' not in model_info:
+        m_packet.msg.append('[ERROR] model_info->url field is missing')
+        return False
+    return True
