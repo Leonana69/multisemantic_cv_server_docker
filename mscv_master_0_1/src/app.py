@@ -78,14 +78,10 @@ def json_api():
 def request_service(mscv_packet):
     if mscv_packet.mode == 'deploy' and parse_model_info(mscv_packet):
         model_info = mscv_packet.data['model_info']
-        model_name = model_info['name']
-        model_url = model_info['url']
-        custom_tensorflow_serving_deployment(mscv_packet, model_name, model_url)
-    elif mscv_packet.mode == 'stop' and parse_model_info(mscv_packet):
+        custom_tensorflow_serving_deployment(mscv_packet, model_info['name'], model_info['url'])
+    elif mscv_packet.mode == 'stop' and parse_model_info(mscv_packet, False):
         model_info = mscv_packet.data['model_info']
-        model_name = model_info['name']
-        # TODO: delete deployment
-        pass
+        delete_custom_tensorflow_serving_deployment(mscv_packet, model_info['name'])
     elif mscv_packet.mode == 'image' or mscv_packet.mode == 'image_imu':
         # check if image data exists
         has_img = False
@@ -208,6 +204,24 @@ def custom_tensorflow_serving_deployment(mscv_packet, model_name, model_url):
             body = deployment
         )
         mscv_packet.msg.append('[SUCCESS] custom tensorflow serving deployment created')
+    except ApiException as e:
+        mscv_packet.msg.append('[ERROR] custom tensorflow serving deployment failed with exception: {}'.format(e))
+
+    # TODO: deploy service
+    pass
+
+def delete_custom_tensorflow_serving_deployment(mscv_packet, model_name):
+    deployment_name = mscv_packet.user + '-' + model_name + '-deployment'
+    try:
+        api_response = api.delete_namespaced_deployment(
+            name = deployment_name,
+            namespace = 'default',
+            body = client.V1DeleteOptions(
+                propagation_policy = 'Foreground',
+                grace_period_seconds = 1
+            )
+        )
+        mscv_packet.msg.append('[SUCCESS] custom tensorflow serving deployment deleted')
     except ApiException as e:
         mscv_packet.msg.append('[ERROR] custom tensorflow serving deployment failed with exception: {}'.format(e))
 

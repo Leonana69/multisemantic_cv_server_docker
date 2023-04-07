@@ -86,7 +86,7 @@ class MultisemanticPacket():
         }
         return json.dumps(r_packet)
 
-def parse_model_info(m_packet):
+def parse_model_info(m_packet, model_url=True):
     if 'model_info' not in m_packet.data:
         m_packet.msg.append('[ERROR] model_info field is missing')
         return False
@@ -94,7 +94,7 @@ def parse_model_info(m_packet):
     if 'name' not in model_info:
         m_packet.msg.append('[ERROR] model_info->name field is missing')
         return False
-    if 'url' not in model_info:
+    if model_url and 'url' not in model_info:
         m_packet.msg.append('[ERROR] model_info->url field is missing')
         return False
     return True
