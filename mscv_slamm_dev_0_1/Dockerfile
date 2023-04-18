@@ -42,15 +42,14 @@ COPY ./src ./src
 # Install crow
 RUN dpkg -i ~/src/lib/crow-v1.0+5.deb
 
-# Install eigen 3.2.1
-RUN cd /tmp && wget https://gitlab.com/libeigen/eigen/-/archive/3.2.1/eigen-3.2.1.tar.gz && \
-    tar -xzf eigen-3.2.1.tar.gz && \
-    mv eigen-4e80704c53d41a241cf346de57bc9a74b3d30ee1 eigen-3.2.1 && \
-    cd eigen-3.2.1 && \
+# Install eigen 3.2.10
+RUN cd /tmp && wget https://gitlab.com/libeigen/eigen/-/archive/3.2.10/eigen-3.2.10.tar.gz && \
+    tar -xzf eigen-3.2.10.tar.gz && \
+    cd eigen-3.2.10 && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$nproc && make install && \
-    cd /tmp && rm -rf eigen-3.2.1.tar.gz eigen-3.2.1
+    cd /tmp && rm -rf eigen-3.2.10.tar.gz eigen-3.2.10
 
 # Install BLAS and LAPACK
 RUN apt-get install -y libblas-dev liblapack-dev
