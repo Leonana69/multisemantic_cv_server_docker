@@ -3,9 +3,10 @@ FROM python:3.11-slim-bullseye
 RUN apt update
 RUN apt install -y build-essential
 RUN apt install -y libpq-dev
-RUN pip install Flask Pillow numpy kubernetes
+RUN pip install kubernetes
 RUN pip install psycopg2
 RUN pip install types-psycopg2
+RUN pip install pytz
 
 ### dev part begins ###
 ### install sublime-text ###
@@ -19,9 +20,5 @@ RUN pip install types-psycopg2
 
 WORKDIR /root
 COPY ./src ./src
-EXPOSE 50001
-
-# ENV HUMAN_POSE_SERVICE_HOST=localhost
-# ENV HUMAN_POSE_SERVICE_PORT=50004
 
 CMD ["python", "./src/app.py"]
