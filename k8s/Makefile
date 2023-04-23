@@ -4,8 +4,14 @@ apply-config:
 	@-$(MK) delete configmap mscv-envs-config
 	@$(MK) apply -f config-map.yaml
 
+apply-db-service:
+	@$(MK) apply -f service_deployment_db.yaml
+
 deploy-master:
 	@$(MK) create -f deployment_master.yaml
+
+deploy-reaper:
+	@$(MK) create -f deployment_reaper.yaml
 
 deploy-example-service:
 	@$(MK) create -f deployment_example_service.yaml
@@ -18,6 +24,11 @@ deploy-human-pose:
 
 deploy-custom-tensorflow-serving:
 	@$(MK) create -f deployment_custom_tensorflow_serving.yaml
+
+import-reaper:
+	@-microk8s ctr image delete docker.io/library/mscv-reaper:0.1
+	docker save mscv-reaper > mscv-reaper.tar
+	microk8s ctr image import mscv-reaper.tar
 
 import-master:
 	@-microk8s ctr image delete docker.io/library/mscv-master:0.1
@@ -48,9 +59,15 @@ clean-master:
 	@-$(MK) delete deploy mscv-master
 	@-$(MK) delete svc mscv-master-svc
 
+clean-reaper:
+	@-$(MK) delete deploy mscv-reaper
+	@-$(MK) delete svc deployment-db
+
 clean:
 	@-$(MK) delete deploy mscv-master
 	@-$(MK) delete svc mscv-master-svc
+	@-$(MK) delete deploy mscv-reaper
+	@-$(MK) delete svc deployment-db
 	@-$(MK) delete deploy mscv-example-service
 	@-$(MK) delete svc mscv-example-service-svc
 	@-$(MK) delete deploy mscv-human-pose

@@ -1,9 +1,9 @@
 import json
 
 class MultisemanticPacket():
-    mode = ['image', 'image_imu', 'deploy', 'stop']
+    mode = ['image', 'image_imu', 'deploy', 'stop', 'custom']
     function = ['pose', 'slam']
-    users_list = ['duke-drone-1', 'duke-drone-2', 'web-interface', 'guojun']
+    users_list = ['duke-drone-1', 'duke-drone-2', 'web-interface', 'guojun', 'tucker']
 
     def __init__(self, user='none', mode='none', timestamp=0.0, function=[], data={}):
         self.user = user
@@ -61,7 +61,7 @@ class MultisemanticPacket():
 
         valid_function = []
         for f in self.function:
-            if f not in MultisemanticPacket.function:
+            if f not in MultisemanticPacket.function and self.mode != "custom":
                 self.msg.append(f'[WARNING] invalid function: {f}, the valid values are: {MultisemanticPacket.function}')
             else:
                 valid_function.append(f)

@@ -5,7 +5,13 @@ data:
   EXAMPLE_SERVICE_HOST: mscv-example-service-svc
   EXAMPLE_SERVICE_PORT: "50003"
   HUMAN_POSE_SERVICE_HOST: mscv-human-pose-svc
-  HUMAN_POSE_SERVICE_PORT: "50004"
+  TF_SERVICE_PORT: "50004"
   SLAM_SERVICE_HOST: mscv-slam-svc
   SLAM_SERVICE_PORT: "50005"
+  DB_HOST: "10.0.1.1"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+  DB_USER: "postgres"
+  DB_PASSWORD: "postgres"
+  TIMEZONE: "UTC"
 kind: ConfigMap

@@ -1,4 +1,4 @@
-FROM tensorflow/serving
+FROM tensorflow/serving:latest-gpu
 
 RUN apt update && apt install -y wget
 WORKDIR /root

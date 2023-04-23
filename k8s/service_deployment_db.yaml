@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: deployment-db
+spec:
+  type: ExternalName
+  externalName: localhost
+  ports:
+    - name: db-port
+      targetPort: 5050
+      port: 8080
