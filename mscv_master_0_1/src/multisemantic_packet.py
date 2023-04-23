@@ -2,7 +2,7 @@ import json
 
 class MultisemanticPacket():
     mode = ['image', 'image_imu', 'deploy', 'stop', 'custom']
-    function = ['pose', 'slam']
+    function = ['pose', 'slam', 'aruco']
     users_list = ['duke-drone-1', 'duke-drone-2', 'web-interface', 'guojun', 'tucker']
 
     def __init__(self, user='none', mode='none', timestamp=0.0, function=[], data={}):

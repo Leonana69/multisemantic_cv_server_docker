@@ -242,11 +242,18 @@ def call_service(mscv_packet, img):
             DATA = json.dumps({
                 'width': img.size[0],
                 'height': img.size[1],
-                'img': np.array(img).reshape(1, -1).tolist(),
+                'instances': np.array(img).reshape(1, -1).tolist(),
                 'timestamp': mscv_packet.timestamp,
                 'reset': 1 if mscv_packet.mode == 'stop' else 0
             }).encode('utf-8')
-            
+        elif func == 'aruco':
+            HOST = os.getenv('ARUCO_SERVICE_HOST')
+            PORT = os.getenv('ARUCO_SERVICE_PORT')
+            ADDR = ''
+
+            DATA = json.dumps({
+                'instances': np.array(img).tolist(),
+            }).encode('utf-8')
         else:
             pass
 
@@ -263,6 +270,8 @@ def call_service(mscv_packet, img):
                         p[1] = (p[1] - offset[0]) / (1 - 2 * offset[0]) # x
                     func_result['output'] = key_points
                 elif func == 'slam':
+                    func_result['output'] = json.loads(ret.read().decode('utf-8'))['output']
+                elif func == 'aruco':
                     func_result['output'] = json.loads(ret.read().decode('utf-8'))['output']
                 else:
                     pass
@@ -369,8 +378,8 @@ def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
             ports = [
                 client.V1ServicePort(
                     protocol = "TCP",
-                    port = 50004,
-                    target_port = 50005,
+                    port = os.getenv('TF_SERVICE_PORT'),
+                    target_port = os.getenv('TF_SERVICE_PORT'),
                 )
             ]
         ),

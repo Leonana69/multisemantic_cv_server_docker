@@ -1,5 +1,7 @@
 FROM python:3.11-slim-bullseye
-RUN pip install Flask numpy PyQt6 PyOpenGL pyqtgraph
+RUN pip install Flask numpy opencv-python
+RUN apt update
+RUN apt install -y libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev
 
 ### dev part begins ###
 ### install sublime-text ###

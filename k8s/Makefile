@@ -10,6 +10,9 @@ apply-db-service:
 deploy-master:
 	@$(MK) create -f deployment_master.yaml
 
+deploy-aruco:
+	@$(MK) create -f deployment_aruco.yaml
+
 deploy-reaper:
 	@$(MK) create -f deployment_reaper.yaml
 
@@ -26,6 +29,11 @@ import-reaper:
 	@-microk8s ctr image delete docker.io/library/mscv-reaper:0.1
 	docker save mscv-reaper > mscv-reaper.tar
 	microk8s ctr image import mscv-reaper.tar
+
+import-aruco:
+	@-microk8s ctr image delete docker.io/library/mscv-aruco:0.1
+	docker save mscv-aruco > mscv-aruco.tar
+	microk8s ctr image import mscv-aruco.tar
 
 import-master:
 	@-microk8s ctr image delete docker.io/library/mscv-master:0.1
@@ -64,6 +72,8 @@ clean:
 	@-$(MK) delete svc mscv-example-service-svc
 	@-$(MK) delete deploy mscv-human-pose
 	@-$(MK) delete svc mscv-human-pose-svc
+	@-$(MK) delete deploy mscv-aruco
+	@-$(MK) delete svc mscv-aruco-svc
 	
 clean-custom-tensorflow-serving:
 	@-$(MK) delete deploy mscv-custom-tensorflow-serving
