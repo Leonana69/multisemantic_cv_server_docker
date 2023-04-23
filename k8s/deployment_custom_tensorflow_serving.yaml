@@ -20,6 +20,9 @@ spec:
         image: docker.io/library/mscv-custom-tensorflow-serving:0.1
         # here the human-pose and url should be provided
         command: ["bash", "./download.sh", "human-pose", "https://tfhub.dev/google/movenet/singlepose/thunder/4?tf-hub-format=compressed"]
+        resources:
+          limits:
+             nvidia.com/gpu: 1
         imagePullPolicy: Never
         envFrom:
           - configMapRef:

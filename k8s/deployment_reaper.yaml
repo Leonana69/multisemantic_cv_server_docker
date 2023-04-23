@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-reaper
+  labels:
+    app: mscv-reaper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-reaper
+  template:
+    metadata:
+      labels:
+        app: mscv-reaper
+    spec:
+      containers:
+      - name: mscv-reaper-container
+        image: docker.io/library/mscv-reaper:0.1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
+          - name: SAVE_WINDOW
+            value: "300"

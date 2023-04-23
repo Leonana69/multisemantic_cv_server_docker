@@ -1,11 +1,5 @@
 FROM python:3.11-slim-bullseye
-
-RUN apt update
-RUN apt install -y build-essential
-RUN apt install -y libpq-dev
-RUN pip install Flask Pillow numpy kubernetes
-RUN pip install psycopg2
-RUN pip install types-psycopg2
+RUN pip install Flask numpy PyQt6 PyOpenGL pyqtgraph
 
 ### dev part begins ###
 ### install sublime-text ###
@@ -17,13 +11,10 @@ RUN pip install types-psycopg2
 
 ### dev part ends ###
 
-ENV MAIN_PORT=50001
+ENV MAIN_PORT=50010
 
 WORKDIR /root
 COPY ./src ./src
 EXPOSE $MAIN_PORT
-
-# ENV HUMAN_POSE_SERVICE_HOST=localhost
-# ENV HUMAN_POSE_SERVICE_PORT=50004
 
 CMD ["python", "./src/app.py"]
