@@ -10,8 +10,11 @@ RUN pip install Flask
 # RUN apt install -y sublime-text
 ### dev part ends ###
 
+ENV MAIN_PORT=30000
+
 WORKDIR /root
 COPY ./src ./src
 WORKDIR /root/src
-EXPOSE 30000
+EXPOSE $MAIN_PORT
+
 CMD ["python", "./app.py"]

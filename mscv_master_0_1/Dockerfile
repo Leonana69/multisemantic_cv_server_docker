@@ -11,9 +11,11 @@ RUN pip install Flask Pillow numpy kubernetes
 
 ### dev part ends ###
 
+ENV MAIN_PORT=50001
+
 WORKDIR /root
 COPY ./src ./src
-EXPOSE 50001
+EXPOSE $MAIN_PORT
 
 # ENV HUMAN_POSE_SERVICE_HOST=localhost
 # ENV HUMAN_POSE_SERVICE_PORT=50004

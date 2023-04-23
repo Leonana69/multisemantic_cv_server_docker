@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
-import os, json, urllib
+import os, json, urllib, sys
 import time, io, base64
 import numpy as np
 from PIL import Image
@@ -226,4 +226,4 @@ def delete_custom_tensorflow_serving_deployment(mscv_packet, model_name):
         mscv_packet.msg.append('[ERROR] custom tensorflow serving deployment failed with exception: {}'.format(e))
 
 if __name__ == "__main__":    
-    app.run(host="0.0.0.0", port=50001)
+    app.run(host="0.0.0.0", port=os.getenv('MAIN_PORT', 50001))

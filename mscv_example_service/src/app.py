@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask
-import json
+import json, os
 
 app = Flask(__name__)
 
@@ -12,4 +12,4 @@ def index():
     return json.dumps(packet)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=30000)
+    app.run(host="0.0.0.0", port=os.getenv("MAIN_PORT", 30000))
