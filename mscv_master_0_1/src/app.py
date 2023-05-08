@@ -144,12 +144,12 @@ def request_service(mscv_packet):
 def call_custom_service(mscv_packet):
     models = mscv_packet.data.get("models")
     if models is None:
-        mscv_packet.msg.append(f"Expected models field of data not found. Debug info: ${mscv_packet}")
+        mscv_packet.msg.append(f"Expected models field of data not found.")
         return
     for model_info in models:
         func = model_info.get("function")
         if func is None:
-            mscv_packet.msg.append(f"Func for model expected but not found. Debug info: ${mscv_packet}")
+            mscv_packet.msg.append(f"Func for model expected but not found.")
             continue
         func_result = {
             'function': func,
@@ -158,7 +158,6 @@ def call_custom_service(mscv_packet):
 
         service_name = mscv_packet.user + '-' + func + '-svc'
         custom_onnx_server_deployment(mscv_packet, func, model_info.get("url"), model_type=model_info.get("model_type"), data_type=model_info.get("data_type"), shape=model_info.get("shape"))
-        print(f"HERE: ${mscv_packet.msg}")
 
         HOST = service_name
         PORT = os.getenv('ONNX_SERVICE_PORT')
@@ -167,7 +166,6 @@ def call_custom_service(mscv_packet):
         # DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
         DATA = json.dumps({"instances": mscv_packet.data.get("instances")}).encode('utf-8')
 
-        print(f"Data value: ${DATA}") 
 
         rq = urllib.request.Request('http://{}:{}/{}'.format(HOST, PORT, ADDR),
                                     data=DATA,
@@ -277,9 +275,9 @@ def custom_onnx_server_deployment(mscv_packet, func, model_url, model_type=None,
         return
     
     if model_type is None:
-        mscv_packet.msg.append(f" [ERROR] model not yet deployed and model_type not provide. debug info: ${mscv_packet}")
+        mscv_packet.msg.append(f" [ERROR] model not yet deployed and model_type not provide.")
     if data_type is None:
-        mscv_packet.msg.append(f" [ERROR] model not yet deployed and data_type not provide. debug info: ${mscv_packet}")
+        mscv_packet.msg.append(f" [ERROR] model not yet deployed and data_type not provide.")
     
     model_args = [model_url, model_type, "-t", data_type]
     if shape is not None:
@@ -386,7 +384,6 @@ def custom_onnx_server_deployment(mscv_packet, func, model_url, model_type=None,
         ),
     )
 
-    print(service)
 
     try:
         api_response = core_api.create_namespaced_service(
