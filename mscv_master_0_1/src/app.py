@@ -29,7 +29,6 @@ apps_api = client.AppsV1Api()
 core_api = client.CoreV1Api()
 autoscaling_api = client.AutoscalingV1Api()
 
-active_custom_deployments = {}
 
 def get_db_connection():
     return psycopg2.connect(
@@ -111,10 +110,10 @@ def json_api():
 def request_service(mscv_packet):
     if mscv_packet.mode == 'deploy' and parse_model_info(mscv_packet):
         model_info = mscv_packet.data['model_info']
-        custom_tensorflow_serving_deployment(mscv_packet, model_info['name'], model_info['url'])
+        custom_onnx_server_deployment(mscv_packet, model_info['name'], model_info['url'])
     elif mscv_packet.mode == 'stop' and parse_model_info(mscv_packet, False):
         model_info = mscv_packet.data['model_info']
-        delete_custom_tensorflow_serving_deployment(mscv_packet, model_info['name'])
+        delete_custom_onnx_server_deployment(mscv_packet, model_info['name'])
     elif mscv_packet.mode == 'image' or mscv_packet.mode == 'image_imu':
         # check if image data exists
         has_img = False
@@ -138,64 +137,44 @@ def request_service(mscv_packet):
         if has_img:
             call_service(mscv_packet, img)
     elif mscv_packet.mode == "custom":
-        # TODO: remove image logic
-        # check if image data exists
-        has_img = False
-        if 'image' in mscv_packet.data:
-            if 'format' not in mscv_packet.data['image'] or 'content' not in mscv_packet.data['image']:
-                mscv_packet.msg.append('[ERROR] image should has \'format\' and \'content\' fields')
-            else:
-                # parse image data
-                img_data = mscv_packet.data['image']
-                format = img_data['format']
-                content = base64.decodebytes(img_data['content'].encode())
-                if format == 'raw':
-                    img = content
-                elif format == 'default':
-                    img = Image.open(io.BytesIO(content)).convert('RGB')
-                else:
-                    mscv_packet.msg.append('[ERROR] unknown image format')
-                    has_img = False
-                has_img = True
-        
-        if has_img:
-            call_custom_service(mscv_packet, img)
+        call_custom_service(mscv_packet)
         
     return mscv_packet.get_server_packet()
 
-def call_custom_service(mscv_packet, img):
-    for func in mscv_packet.function:
+def call_custom_service(mscv_packet):
+    models = mscv_packet.data.get("models")
+    if models is None:
+        mscv_packet.msg.append(f"Expected models field of data not found.")
+        return
+    for model_info in models:
+        func = model_info.get("function")
+        if func is None:
+            mscv_packet.msg.append(f"Func for model expected but not found.")
+            continue
         func_result = {
             'function': func,
             'output': ''
         }
 
-        model_info = mscv_packet.data['model_info']
         service_name = mscv_packet.user + '-' + func + '-svc'
-        custom_tensorflow_serving_deployment(mscv_packet, func, model_info['url'])
+        custom_onnx_server_deployment(mscv_packet, func, model_info.get("url"), model_type=model_info.get("model_type"), data_type=model_info.get("data_type"), shape=model_info.get("shape"))
 
         HOST = service_name
-        PORT = os.getenv('TF_SERVICE_PORT')
-        ADDR = f'v1/models/{model_info["name"]}:predict'
+        PORT = os.getenv('ONNX_SERVICE_PORT')
+        ADDR = '/api'
 
-        img_pose = resize_with_pad(img, [256, 256])
-        DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
+        # DATA = json.dumps({ "instances": [np.array(img_pose).tolist()] }).encode('utf-8')
+        DATA = json.dumps({"instances": mscv_packet.data.get("instances")}).encode('utf-8')
 
-            
 
         rq = urllib.request.Request('http://{}:{}/{}'.format(HOST, PORT, ADDR),
                                     data=DATA,
                                     headers={'Content-type' : 'application/json'})
-        timeout = time.time() + 5
+        timeout = time.time() + 40
         while timeout > time.time():
             try:
                 with urllib.request.urlopen(rq) as ret:
-                    key_points = json.loads(ret.read().decode('utf-8'))['predictions'][0][0]
-                    offset = get_pad_offset(img.size, [256, 256])
-                    for p in key_points:
-                        p[0] = (p[0] - offset[1]) / (1 - 2 * offset[1]) # y
-                        p[1] = (p[1] - offset[0]) / (1 - 2 * offset[0]) # x
-                    func_result['output'] = key_points
+                    func_result['output'] = ret.read().decode('utf-8')
                     msg = '[SUCCESS] request function <{}>'.format(func)
                 break
             except Exception  as err:
@@ -285,17 +264,26 @@ def call_service(mscv_packet, img):
         mscv_packet.results.append(func_result)
 
 
-def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
+def custom_onnx_server_deployment(mscv_packet, func, model_url, model_type=None, data_type=None, shape=None):
     deployment_name = mscv_packet.user + '-' + func + '-deployment'
-    model_info = mscv_packet.data['model_info']
     db_conn = get_db_connection()
     db_cursor = db_conn.cursor(cursor_factory=DictCursor)
     service_entry = find_service(deployment_name, db_cursor)
     if service_entry is not None:
         refresh_service_last_touched(service_entry["id"], db_conn, db_cursor)
-        mscv_packet.msg.append('[SUCCESS] custom tensorflow serving deployment created')
+        mscv_packet.msg.append('[SUCCESS] onnx server deployment created')
         return
-
+    
+    if model_type is None:
+        mscv_packet.msg.append(f" [ERROR] model not yet deployed and model_type not provide.")
+    if data_type is None:
+        mscv_packet.msg.append(f" [ERROR] model not yet deployed and data_type not provide.")
+    
+    model_args = [model_url, model_type, "-t", data_type]
+    if shape is not None:
+        model_args.append("-s")
+        model_args.append(shape)
+    
     deployment = client.V1Deployment(
         api_version = "apps/v1",
         metadata = client.V1ObjectMeta(name = deployment_name),
@@ -306,18 +294,32 @@ def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
             ),
             template = client.V1PodTemplateSpec(
                 metadata = client.V1ObjectMeta(
-                    labels = {'app': deployment_name}
+                    labels = {'app': deployment_name},
                 ),
                 spec = client.V1PodSpec(
                     containers = [
                         client.V1Container(
                             name = deployment_name,
-                            image = "docker.io/library/mscv-custom-tensorflow-serving:0.1",
-                            command = ["bash", "./download.sh", func, model_url],
-                            resources = client.V1ResourceRequirements(limits = { "nvidia.com/gpu": 1 })
-                        )
-                    ]
-                )
+                            image = "docker.io/library/mscv-onnx-server:0.1",
+                            args = model_args,
+                            env=[
+                                client.V1EnvVar(
+                                    name="PYTHONUNBUFFERED",
+                                    value="1"
+                                )
+                            ],
+                            env_from=[
+                                client.V1EnvFromSource(
+                                    config_map_ref=client.V1ConfigMapEnvSource(
+                                        name="mscv-envs-config"
+                                    ),
+                                ),
+                            ],
+                            # update in when new onnx version available that supports more recent cuda gpus.
+                            # resources = client.V1ResourceRequirements(limits = { "nvidia.com/gpu": 1 })
+                        ),
+                    ],
+                ),
             )
         )
     )
@@ -328,9 +330,9 @@ def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
             namespace = 'default',
             body = deployment
         )
-        mscv_packet.msg.append('[SUCCESS] custom tensorflow serving deployment created')
+        mscv_packet.msg.append('[SUCCESS] onnx server deployment created')
     except ApiException as e:
-        mscv_packet.msg.append('[ERROR] custom tensorflow serving deployment failed with exception: {}'.format(e))
+        mscv_packet.msg.append('[ERROR] onnx server deployment failed with exception: {}'.format(e))
         return
     
     # Add entry here so deployment will still be deleted if other resource creation fails.
@@ -362,10 +364,7 @@ def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
         mscv_packet.msg.append('[SUCCESS] custom tensorflow hpa created')
     except ApiException as e:
         mscv_packet.msg.append('[ERROR] custom tensorflow hpa failed with exception: {}'.format(e))
-        delete_custom_tensorflow_serving_deployment(mscv_packet, func)
-    
-    # Save after deployment in case failure to delete deployment on service failure. Will allow reaper to be aware of deployment.
-    active_custom_deployments[deployment_name] = model_info['url']
+        delete_custom_onnx_server_deployment(mscv_packet, func)
 
     service_name = mscv_packet.user + '-' + func + '-svc'
     service = client.V1Service(
@@ -378,24 +377,25 @@ def custom_tensorflow_serving_deployment(mscv_packet, func, model_url):
             ports = [
                 client.V1ServicePort(
                     protocol = "TCP",
-                    port = os.getenv('TF_SERVICE_PORT'),
-                    target_port = os.getenv('TF_SERVICE_PORT'),
+                    port = int(os.getenv('ONNX_SERVICE_PORT')),
+                    target_port = int(os.getenv('ONNX_SERVICE_PORT')),
                 )
             ]
         ),
     )
+
 
     try:
         api_response = core_api.create_namespaced_service(
             namespace = 'default',
             body = service
         )
-        mscv_packet.msg.append('[SUCCESS] custom tensorflow serving service created')
+        mscv_packet.msg.append('[SUCCESS] onnx server service created')
     except ApiException as e:
-        mscv_packet.msg.append('[ERROR] custom tensorflow serving service failed with exception: {}'.format(e))
-        delete_custom_tensorflow_serving_deployment(mscv_packet, func)
+        mscv_packet.msg.append('[ERROR] onnx server service failed with exception: {}'.format(e))
+        delete_custom_onnx_server_deployment(mscv_packet, func)
 
-def delete_custom_tensorflow_serving_deployment(mscv_packet, model_name):
+def delete_custom_onnx_server_deployment(mscv_packet, model_name):
     deployment_name = mscv_packet.user + '-' + model_name + '-deployment'
     try:
         api_response = apps_api.delete_namespaced_deployment(
@@ -406,10 +406,9 @@ def delete_custom_tensorflow_serving_deployment(mscv_packet, model_name):
                 grace_period_seconds = 1
             )
         )
-        del active_custom_deployments[deployment_name]
-        mscv_packet.msg.append('[SUCCESS] custom tensorflow serving deployment deleted')
+        mscv_packet.msg.append('[SUCCESS] onnx server deployment deleted')
     except ApiException as e:
-        mscv_packet.msg.append('[ERROR] custom tensorflow serving deployment failed with exception: {}'.format(e))
+        mscv_packet.msg.append('[ERROR] onnx server deployment failed with exception: {}'.format(e))
 
 if __name__ == "__main__":    
     app.run(host="0.0.0.0", port=os.getenv('MAIN_PORT', 50001))

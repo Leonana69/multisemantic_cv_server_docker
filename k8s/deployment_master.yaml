@@ -21,6 +21,9 @@ spec:
         envFrom:
           - configMapRef:
               name: mscv-envs-config
+        env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
         ports:
         - containerPort: 50001
 ---

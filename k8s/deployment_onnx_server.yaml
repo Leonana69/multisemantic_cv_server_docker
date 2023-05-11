@@ -1,0 +1,47 @@
+# using python to create a deployment like this
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mscv-onnx-server
+  labels:
+    app: mscv-onnx-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mscv-onnx-server
+  template:
+    metadata:
+      labels:
+        app: mscv-onnx-server
+    spec:
+      containers:
+      - name: mscv-onnx-server-container
+        image: docker.io/library/mscv-onnx-server:0.1
+        # here the human-pose and url should be provided
+        args: ["https://tfhub.dev/google/movenet/singlepose/thunder/4?tf-hub-format=compressed", "tf-compressed", "-t", "int32"]
+        # uncomment when gpus available.
+        # resources:
+        #   limits:
+        #      nvidia.com/gpu: 1
+        imagePullPolicy: Never
+        envFrom:
+          - configMapRef:
+              name: mscv-envs-config
+        ports:
+        - containerPort: 50009
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mscv-onnx-server-svc
+spec:
+  selector:
+    app: mscv-onnx-server
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      # cluster internal service port
+      port: 50009
+      # container service port
+      targetPort: 50009

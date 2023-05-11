@@ -10,6 +10,9 @@ apply-db-service:
 deploy-master:
 	@$(MK) create -f deployment_master.yaml
 
+deploy-onnx-server:
+	@$(MK) create -f deployment_onnx_server.yaml
+
 deploy-aruco:
 	@$(MK) create -f deployment_aruco.yaml
 
@@ -21,6 +24,9 @@ deploy-example-service:
 
 deploy-human-pose:
 	@$(MK) create -f deployment_human_pose.yaml
+
+deploy-custom-tensorflow-serving:
+	@$(MK) create -f deployment_onnx_server.yaml
 
 deploy-custom-tensorflow-serving:
 	@$(MK) create -f deployment_custom_tensorflow_serving.yaml
@@ -50,6 +56,11 @@ import-human-pose:
 	docker save mscv-human-pose > mscv-human-pose.tar
 	microk8s ctr image import mscv-human-pose.tar
 
+import-onnx-serving:
+	@-microk8s ctr image delete docker.io/library/mscv-onnx-server:0.1
+	docker save mscv-onnx-server > mscv-onnx-server.tar
+	microk8s ctr image import mscv-onnx-server.tar
+
 import-custom-tensorflow-serving:
 	@-microk8s ctr image delete docker.io/library/mscv-custom-tensorflow-serving:0.1
 	docker save mscv-custom-tensorflow-serving > mscv-custom-tensorflow-serving.tar
@@ -75,6 +86,10 @@ clean:
 	@-$(MK) delete deploy mscv-aruco
 	@-$(MK) delete svc mscv-aruco-svc
 	
+clean-onnx-server:
+	@-$(MK) delete deploy mscv-onnx-server
+	@-$(MK) delete svc mscv-onnx-server-svc
+
 clean-custom-tensorflow-serving:
 	@-$(MK) delete deploy mscv-custom-tensorflow-serving
 	@-$(MK) delete svc mscv-human-pose-svc
